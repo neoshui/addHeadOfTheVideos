@@ -10,8 +10,8 @@ class Videos:
     def __init__(self):
         pass
 
-    def draw_img(self, new_img, text, logo_text):
-        text = str(text)
+    def draw_img(self, new_img, title_text, logo_text):
+        title_text = str(title_text)
         logo_text = str(logo_text)
         draw = ImageDraw.Draw(new_img)
         img_size = new_img.size
@@ -20,31 +20,41 @@ class Videos:
 
         title_font_size = 100
         title_font = ImageFont.truetype('STHeitiMedium.ttc', title_font_size)
-        title_img_font_size = title_font.getsize(text)
+        title_img_font_size = title_font.getsize(title_text)
         while title_img_font_size[0] > img_size[0]:
             title_font_size -= 5
             title_font = ImageFont.truetype('STHeitiMedium.ttc', title_font_size)
-            title_img_font_size = title_font.getsize(text)
+            title_img_font_size = title_font.getsize(title_text)
 
-        logo_font_size = 90
+        logo_font_size = 100
         logo_font = ImageFont.truetype('STHeitiMedium.ttc', logo_font_size)
-        logo_img_font_size = logo_font.getsize(text)
+        logo_img_font_size = logo_font.getsize(logo_text)
 
         title_x = (img_size[0] - title_img_font_size[0]) / 2
         title_y = (img_size[1] - title_img_font_size[1]) / 2
-        logo_x = (img_size[0] - (logo_img_font_size[0]))
-        logo_y = (img_size[1] - (logo_img_font_size[1]))
-        print(img_size[0], img_size[1])
-        print(logo_img_font_size[0], logo_img_font_size[1])
-        print(logo_x, logo_y)
+        logo_x = (img_size[0] - (logo_img_font_size[0] + 30))
+        logo_y = (img_size[1] - (logo_img_font_size[1] + 30))
+        # print('img', img_size[0], img_size[1])
+        # print('logo', logo_img_font_size[0], logo_img_font_size[1])
+        # print('xy', logo_x, logo_y)
 
-        draw.text((title_x, title_y), text, font=title_font, fill=(25, 25, 25))
+        draw.text((title_x, title_y), title_text, font=title_font, fill=(25, 25, 25))
         draw.text((logo_x, logo_y), logo_text, font=title_font, fill=(25, 25, 25))
+
+        pass
+
+    def add_img_logo(self, new_img, icon):
+        # img_size = new_img.size
+        logo_img = Image.open(icon)
+        new_img.paste(logo_img, (40, 40))
+        return new_img
+
         pass
 
     def create_img(self, width, height, text='title', logo_text='logo', color=(100, 100, 100, 100)):
         new_img = Image.new('RGBA', (int(width), int(height)), color)
         self.draw_img(new_img, text, logo_text)
+        new_img = self.add_img_logo(new_img, 'icon.png')
         new_img.save(f'{text}.png')
         pass
 
@@ -78,4 +88,4 @@ if __name__ == '__main__':
     for file in files:
         video_info = v.get_video_info(file)
         if video_info != []:
-            v.create_img(video_info[1], video_info[2], video_info[3], 'logo')
+            v.create_img(video_info[1], video_info[2], video_info[3], "Logo测试")
