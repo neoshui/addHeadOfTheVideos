@@ -11,6 +11,13 @@ class Videos:
         pass
 
     def draw_img(self, new_img, title_text, logo_text):
+        """
+        将文字放到图片上
+        :param new_img:背景图片
+        :param title_text:文件标题
+        :param logo_text:logo标题
+        :return:
+        """
         title_text = str(title_text)
         logo_text = str(logo_text)
         draw = ImageDraw.Draw(new_img)
@@ -44,6 +51,12 @@ class Videos:
         pass
 
     def add_img_logo(self, new_img, icon):
+        """
+        粘贴logo图标
+        :param new_img: 背景图片
+        :param icon: logo
+        :return:
+        """
         # img_size = new_img.size
         logo_img = Image.open(icon)
         new_img.paste(logo_img, (40, 40))
@@ -52,6 +65,15 @@ class Videos:
         pass
 
     def create_img(self, width, height, text='title', logo_text='logo', color=(100, 100, 100, 100)):
+        """
+        创建背景图片
+        :param width:视频宽度
+        :param height:视频高度
+        :param text:视频标题
+        :param logo_text:logo文字
+        :param color:
+        :return:
+        """
         new_img = Image.new('RGBA', (int(width), int(height)), color)
         self.draw_img(new_img, text, logo_text)
         new_img = self.add_img_logo(new_img, 'icon.png')
@@ -59,6 +81,11 @@ class Videos:
         pass
 
     def get_video_info(self, file):
+        """
+        获取视频信息：fps,width,height,file_name
+        :param file:视频文件
+        :return:
+        """
         file_type = file.split('.')[-1]
         if file_type == 'mp4' or file_type == 'MP4' or file_type == 'avi' or file_type == 'AVI':
             cap = cv2.VideoCapture(file)
@@ -73,12 +100,32 @@ class Videos:
             return []
 
     def gen_file(self, path):
+        """
+        读取文件
+        :param path:
+        :return:
+        """
         files_list = os.listdir(path)
         file_list = []
         for file in files_list:
             if not os.path.isdir(file):
                 file_list.append(file)
         return file_list
+
+    def create_video(self):
+        """
+        创建视频
+        :return:
+        """
+        fourcc = cv2.VideoWriter_fourcc(*f'{self.fourcc}')
+        # FLV1编码体积更小
+        file_list = os.listdir(self.path)
+        v = cv2.VideoWriter(f'./{self.videos_name}', fourcc, self.fps, self.resolution, True)
+        for file in file_list:
+            if file[-3:] == 'png':
+                img = cv2.imread(f'{self.path}{file}')
+                if self.resolution[0] == img.shape[1] and self.resolution[1] == img.shape[0]:
+                    v.write(img)
 
 
 if __name__ == '__main__':
