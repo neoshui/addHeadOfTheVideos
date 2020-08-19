@@ -93,9 +93,10 @@ class Videos:
             width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
             height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
             file_name = file.split('.')[0]
+            fourcc = int(cap.get(cv2.CAP_PROP_FOURCC))
 
-            print(fps, width, height, file_name)
-            return [fps, width, height, file_name]
+            print(fps, width, height, file_name, fourcc)
+            return [fps, width, height, file_name, fourcc]
         else:
             return []
 
@@ -112,20 +113,22 @@ class Videos:
                 file_list.append(file)
         return file_list
 
-    def create_video(self):
+    def create_video(self, videos_name, fourcc, fps, resolution):
         """
         创建视频
         :return:
         """
-        fourcc = cv2.VideoWriter_fourcc(*f'{self.fourcc}')
+        # fourcc = cv2.VideoWriter_fourcc(*f'{self.fourcc}')
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         # FLV1编码体积更小
-        file_list = os.listdir(self.path)
-        v = cv2.VideoWriter(f'./{self.videos_name}', fourcc, self.fps, self.resolution, True)
+        file_list = os.listdir('./')
+        v = cv2.VideoWriter(f'a/{videos_name}.mp4', fourcc, fps, resolution, True)
         for file in file_list:
             if file[-3:] == 'png':
-                img = cv2.imread(f'{self.path}{file}')
-                if self.resolution[0] == img.shape[1] and self.resolution[1] == img.shape[0]:
-                    v.write(img)
+                if file[0:-4] == videos_name:
+                    for x in range(150):
+                        img = cv2.imread(f'{file}')
+                        v.write(img)
 
 
 if __name__ == '__main__':
@@ -135,4 +138,7 @@ if __name__ == '__main__':
     for file in files:
         video_info = v.get_video_info(file)
         if video_info != []:
-            v.create_img(video_info[1], video_info[2], video_info[3], "Logo测试")
+            # fps, width, height, file_name, fourcc
+            v.create_img(video_info[1], video_info[2], video_info[3], "数字电子技术")
+            v.create_video(videos_name=video_info[3], fourcc=video_info[4], fps=video_info[0],
+                           resolution=(video_info[1], video_info[2]))
