@@ -45,8 +45,8 @@ class Videos:
         # print('logo', logo_img_font_size[0], logo_img_font_size[1])
         # print('xy', logo_x, logo_y)
 
-        draw.text((title_x, title_y), title_text, font=title_font, fill=(25, 25, 25))
-        draw.text((logo_x, logo_y), logo_text, font=title_font, fill=(25, 25, 25))
+        draw.text((title_x, title_y), title_text, font=title_font, fill="#FFA500")
+        draw.text((logo_x, logo_y), logo_text, font=title_font, fill="#FFA500")
 
         pass
 
@@ -74,7 +74,10 @@ class Videos:
         :param color:
         :return:
         """
-        new_img = Image.new('RGBA', (int(width), int(height)), color)
+        # old_new_img = Image.new('RGBA', (int(width), int(height)), color)
+        origin_img = Image.open('back.png')
+        new_img = origin_img.crop((0, 0, int(width), int(height)))
+        new_img.save('cut.png')
         self.draw_img(new_img, text, logo_text)
         new_img = self.add_img_logo(new_img, 'icon.png')
         new_img.save(f'{text}.png')
