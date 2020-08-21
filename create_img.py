@@ -2,6 +2,7 @@ import os
 
 from PIL import Image, ImageDraw, ImageFont
 import cv2
+from moviepy.editor import VideoFileClip, concatenate_videoclips
 from cv2 import VideoWriter, VideoWriter_fourcc
 import numpy as np
 
@@ -75,9 +76,8 @@ class Videos:
         :return:
         """
         # old_new_img = Image.new('RGBA', (int(width), int(height)), color)
-        origin_img = Image.open('back.png')
+        origin_img = Image.open('background.png')
         new_img = origin_img.crop((0, 0, int(width), int(height)))
-        new_img.save('cut.png')
         self.draw_img(new_img, text, logo_text)
         new_img = self.add_img_logo(new_img, 'icon.png')
         new_img.save(f'{text}.png')
@@ -99,7 +99,7 @@ class Videos:
             fourcc = int(cap.get(cv2.CAP_PROP_FOURCC))
 
             print(fps, width, height, file_name, fourcc)
-            return [fps, width, height, file_name, fourcc]
+            return [fps, width, height, file_name, fourcc, file_type]
         else:
             return []
 
@@ -116,22 +116,36 @@ class Videos:
                 file_list.append(file)
         return file_list
 
-    def create_video(self, videos_name, fourcc, fps, resolution):
+    def create_video(self, videos_name, fourcc, fps, resolution, videos_type):
         """
         创建视频
         :return:
         """
         # fourcc = cv2.VideoWriter_fourcc(*f'{self.fourcc}')
+        create_file = False
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         # FLV1编码体积更小
         file_list = os.listdir('./')
-        v = cv2.VideoWriter(f'a/{videos_name}.mp4', fourcc, fps, resolution, True)
+        v = cv2.VideoWriter(f'{videos_name}_h.{videos_type}', fourcc, fps, resolution, True)
         for file in file_list:
             if file[-3:] == 'png':
                 if file[0:-4] == videos_name:
                     for x in range(150):
                         img = cv2.imread(f'{file}')
                         v.write(img)
+                        create_file = True
+        return create_file, videos_name, videos_type
+
+    def paste_videos(self, videos_name, videos_type):
+        videos_list = []
+        head = VideoFileClip(f'{videos_name}_h.{videos_type}')
+        main = VideoFileClip(f'{videos_name}.{videos_type}')
+        videos_list.append(head)
+        videos_list.append(main)
+        if videos_list != []:
+            videos_clip = concatenate_videoclips(videos_list)
+            videos_clip.to_videofile(f'{videos_name}_l.{videos_type}')
+        pass
 
 
 if __name__ == '__main__':
@@ -143,5 +157,9 @@ if __name__ == '__main__':
         if video_info != []:
             # fps, width, height, file_name, fourcc
             v.create_img(video_info[1], video_info[2], video_info[3], "数字电子技术")
-            v.create_video(videos_name=video_info[3], fourcc=video_info[4], fps=video_info[0],
-                           resolution=(video_info[1], video_info[2]))
+            create_file, videos_name, videos_type = v.create_video(videos_name=video_info[3], fourcc=video_info[4],
+                                                                   fps=video_info[0],
+                                                                   resolution=(video_info[1], video_info[2]),
+                                                                   videos_type=video_info[5])
+            if create_file:
+                v.paste_videos(videos_name, videos_type)
