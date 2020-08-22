@@ -132,8 +132,8 @@ class Videos:
         # print('logo', logo_img_font_size[0], logo_img_font_size[1])
         # print('xy', logo_x, logo_y)
 
-        draw.text((title_x, title_y), title_text, font=title_font, fill="#FFA500")
-        draw.text((logo_x, logo_y), logo_text, font=title_font, fill="#FFA500")
+        draw.text((title_x, title_y), title_text, font=title_font, fill="#1C1C1C")
+        draw.text((logo_x, logo_y), logo_text, font=title_font, fill="#1C1C1C")
 
         pass
 
@@ -168,12 +168,18 @@ class Videos:
             videos_clip.to_videofile(f'{videos_name}_l.{videos_type}')
         pass
 
+    def mv_temp_file(self, file_name, file_type):
+        os.system(f'rm -rf {file_name}_h.{file_type}')
+        os.system(f'rm -rf {file_name}.png')
+
+        pass
+
 
 if __name__ == '__main__':
     v = Videos()
     # v.create_img(100, 200, text='这是测试')
-    # files = v.gen_file('./')
-    files = v.walk_dir("./", [], [])
+    files = v.gen_file('./')
+    # files = v.walk_dir("./", [], [])
     for file in files:
         video_info = v.get_video_info(file)
         if video_info != []:
@@ -185,3 +191,4 @@ if __name__ == '__main__':
                                                                    videos_type=video_info[5])
             if create_file:
                 v.paste_videos(videos_name, videos_type)
+                v.mv_temp_file(videos_name, videos_type)
