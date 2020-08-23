@@ -180,8 +180,8 @@ class Videos:
 
 
     def mv_temp_file(self, file_name, file_type, file_path):
-        os.remove(f'{file_path}/{videos_name}_h.{videos_type}')
-        os.remove(f'{file_path}/{videos_name}.png')
+        os.remove(f'{file_path}/{file_name}_h.{file_type}')
+        os.remove(f'{file_path}/{file_name}.png')
 
         pass
 
