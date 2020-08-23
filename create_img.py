@@ -48,39 +48,44 @@ class Videos:
     def get_video_info(self, file):
         """
         获取视频信息：fps,width,height,file_name
-        :param file:视频文件
-        :return:
+        :param file:视频文件路径
+        :return: fps, width, height, file_name, fourcc, file_type, file_path
         """
         file_type = file.split('.')[-1]
-        if file_type == 'mp4' or file_type == 'MP4' or file_type == 'avi' or file_type == 'AVI':
-            cap = cv2.VideoCapture(file)
-            fps = int(cap.get(cv2.CAP_PROP_FPS))
-            width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-            height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            file_name = file.split('.')[0]
-            fourcc = int(cap.get(cv2.CAP_PROP_FOURCC))
+        if len(file.split('/.')) == 1:
+            if file_type == 'mp4' or file_type == 'MP4' or file_type == 'avi' or file_type == 'AVI' or file_type == 'mov' or file_type == 'MOV':
+                # mov 和 mp4 格式兼容
+                cap = cv2.VideoCapture(file)
+                fps = int(cap.get(cv2.CAP_PROP_FPS))
+                width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-            print(fps, width, height, file_name, fourcc)
-            return [fps, width, height, file_name, fourcc, file_type]
-        else:
-            return []
+                file_name = os.path.split(file)[1][0:-4]
+                file_path = os.path.split(file)[0]
 
-    def create_img(self, width, height, text='title', logo_text='logo', color=(100, 100, 100, 100)):
+                fourcc = int(cap.get(cv2.CAP_PROP_FOURCC))
+
+                # print(fps, width, height, file_name, fourcc)
+                return [fps, width, height, file_name, fourcc, file_type, file_path]
+            else:
+                return []
+
+    def create_img(self, width, height, title, logo_text, file_path):
         """
         创建背景图片
         :param width:视频宽度
         :param height:视频高度
-        :param text:视频标题
+        :param title:视频标题
         :param logo_text:logo文字
-        :param color:
+        :param file_path: 文件路径
         :return:
         """
         # old_new_img = Image.new('RGBA', (int(width), int(height)), color)
         origin_img = Image.open('background.png')
         new_img = origin_img.crop((0, 0, int(width), int(height)))
-        self.draw_img(new_img, text, logo_text)
+        self.draw_img(new_img, title, logo_text)
         new_img = self.add_img_logo(new_img, 'icon.png')
-        new_img.save(f'{text}.png')
+        new_img.save(f'{file_path}/{title}.png')
         pass
 
     def add_img_logo(self, new_img, icon):
@@ -88,7 +93,7 @@ class Videos:
         粘贴logo图标
         :param new_img: 背景图片
         :param icon: logo
-        :return:
+        :return: new_img
         """
         # img_size = new_img.size
         logo_img = Image.open(icon)
@@ -137,40 +142,46 @@ class Videos:
 
         pass
 
-    def create_video(self, videos_name, fourcc, fps, resolution, videos_type):
+    def create_video(self, videos_name, fourcc, fps, resolution, videos_type, file_path):
         """
         创建视频
-        :return:
+        :param videos_name: 视频名称
+        :param fourcc: 编码
+        :param fps: 帧率
+        :param resolution: 分辨率
+        :param videos_type: 文件类型
+        :param file_path: 文件路径
+        :return: create_file（文件是否创建成功）, videos_name, videos_type
         """
         # fourcc = cv2.VideoWriter_fourcc(*f'{self.fourcc}')
         create_file = False
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         # FLV1编码体积更小
-        file_list = os.listdir('./')
-        v = cv2.VideoWriter(f'{videos_name}_h.{videos_type}', fourcc, fps, resolution, True)
+        file_list = os.listdir(f'{file_path}/')
+        v = cv2.VideoWriter(f'{file_path}/{videos_name}_h.{videos_type}', fourcc, fps, resolution, True)
         for file in file_list:
             if file[-3:] == 'png':
                 if file[0:-4] == videos_name:
                     for x in range(150):
-                        img = cv2.imread(f'{file}')
+                        img = cv2.imread(f'{file_path}/{file}')
                         v.write(img)
                         create_file = True
         return create_file, videos_name, videos_type
 
-    def paste_videos(self, videos_name, videos_type):
+    def paste_videos(self, videos_name, videos_type, file_path):
         videos_list = []
-        head = VideoFileClip(f'{videos_name}_h.{videos_type}')
-        main = VideoFileClip(f'{videos_name}.{videos_type}')
+        head = VideoFileClip(f'{file_path}/{videos_name}_h.{videos_type}')
+        main = VideoFileClip(f'{file_path}/{videos_name}.{videos_type}')
         videos_list.append(head)
         videos_list.append(main)
         if videos_list != []:
             videos_clip = concatenate_videoclips(videos_list)
-            videos_clip.to_videofile(f'{videos_name}_l.{videos_type}')
-        pass
+            videos_clip.to_videofile(f'{file_path}/{videos_name}_l.mp4')
 
-    def mv_temp_file(self, file_name, file_type):
-        os.system(f'rm -rf {file_name}_h.{file_type}')
-        os.system(f'rm -rf {file_name}.png')
+
+    def mv_temp_file(self, file_name, file_type, file_path):
+        os.remove(f'{file_path}/{videos_name}_h.{videos_type}')
+        os.remove(f'{file_path}/{videos_name}.png')
 
         pass
 
@@ -178,17 +189,19 @@ class Videos:
 if __name__ == '__main__':
     v = Videos()
     # v.create_img(100, 200, text='这是测试')
-    files = v.gen_file('./')
-    # files = v.walk_dir("./", [], [])
+    # files = v.gen_file('./')
+    files = v.walk_dir("./", [], [])
     for file in files:
         video_info = v.get_video_info(file)
-        if video_info != []:
-            # fps, width, height, file_name, fourcc
-            v.create_img(video_info[1], video_info[2], video_info[3], "数字电子技术")
+        if video_info != None and video_info != []:
+            print(file, video_info)
+
+            # # fps, width, height, file_name, fourcc
+            v.create_img(video_info[1], video_info[2], video_info[3], "数字电子技术", video_info[6])
             create_file, videos_name, videos_type = v.create_video(videos_name=video_info[3], fourcc=video_info[4],
                                                                    fps=video_info[0],
                                                                    resolution=(video_info[1], video_info[2]),
-                                                                   videos_type=video_info[5])
+                                                                   videos_type=video_info[5], file_path=video_info[6])
             if create_file:
-                v.paste_videos(videos_name, videos_type)
-                v.mv_temp_file(videos_name, videos_type)
+                v.paste_videos(videos_name, videos_type, video_info[6])
+                v.mv_temp_file(videos_name, videos_type, video_info[6])
