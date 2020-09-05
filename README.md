@@ -6,7 +6,7 @@
     
     PIL (pip3 install pillow)
     
-    cv2 (opencv-python 建议下载对应平台的离线安装包进行安装）
+    cv2 (pip3 install opencv-python 建议下载对应平台的离线安装包进行安装）
     
     moviepy (pip3 install moivepy)
     
