@@ -1,10 +1,9 @@
 import os
-
 from PIL import Image, ImageDraw, ImageFont
 import cv2
 from moviepy.editor import VideoFileClip, concatenate_videoclips
-from cv2 import VideoWriter, VideoWriter_fourcc
 import numpy as np
+
 
 
 class Videos:
@@ -114,19 +113,23 @@ class Videos:
         logo_text = str(logo_text)
         draw = ImageDraw.Draw(new_img)
         img_size = new_img.size
+
         # draw.line((0, 0) + img_size, fill=128)
         # draw.line((0, img_size[1], img_size[0], 0), fill=128)
+        # font_path = '/usr/share/fonts/truetype/wqy/wqy-microhei.ttc'
+        # font_path = fm.findfont(fm.FontProperties(family='wqy'))
 
+        font_path = "STHeitiMedium.ttc"
         title_font_size = 100
-        title_font = ImageFont.truetype('STHeitiMedium.ttc', title_font_size)
+        title_font = ImageFont.truetype(font_path, title_font_size)
         title_img_font_size = title_font.getsize(title_text)
         while title_img_font_size[0] > img_size[0]:
             title_font_size -= 5
-            title_font = ImageFont.truetype('STHeitiMedium.ttc', title_font_size)
+            title_font = ImageFont.truetype(font_path, title_font_size)
             title_img_font_size = title_font.getsize(title_text)
 
         logo_font_size = 100
-        logo_font = ImageFont.truetype('STHeitiMedium.ttc', logo_font_size)
+        logo_font = ImageFont.truetype(font_path, logo_font_size)
         logo_img_font_size = logo_font.getsize(logo_text)
 
         title_x = (img_size[0] - title_img_font_size[0]) / 2
@@ -136,6 +139,9 @@ class Videos:
         # print('img', img_size[0], img_size[1])
         # print('logo', logo_img_font_size[0], logo_img_font_size[1])
         # print('xy', logo_x, logo_y)
+
+        # draw.text((title_x, title_y), title_text, font=title_font, fill="#1C1C1C")
+        # draw.text((logo_x, logo_y), logo_text, font=title_font, fill="#1C1C1C")
 
         draw.text((title_x, title_y), title_text, font=title_font, fill="#1C1C1C")
         draw.text((logo_x, logo_y), logo_text, font=title_font, fill="#1C1C1C")
@@ -162,10 +168,14 @@ class Videos:
         for file in file_list:
             if file[-3:] == 'png':
                 if file[0:-4] == videos_name:
-                    for x in range(150):
-                        img = cv2.imread(f'{file_path}/{file}')
-                        v.write(img)
+                    # img = cv2.imread(f'{file_path}/{file}')
+                    img = cv2.imdecode(np.fromfile(f'{file_path}/{file}', dtype=np.uint8), -1)  # 解决上一条无法读取中文图片的问题
+                    if img !=[]:
+                        for x in range(150):
+                            v.write(img)
                         create_file = True
+                    else:
+                        create_file = False
         return create_file, videos_name, videos_type
 
     def paste_videos(self, videos_name, videos_type, file_path):
@@ -178,7 +188,6 @@ class Videos:
             videos_clip = concatenate_videoclips(videos_list)
             videos_clip.to_videofile(f'{file_path}/{videos_name}_l.mp4')
 
-
     def mv_temp_file(self, file_name, file_type, file_path):
         os.remove(f'{file_path}/{file_name}_h.{file_type}')
         os.remove(f'{file_path}/{file_name}.png')
@@ -188,16 +197,19 @@ class Videos:
 
 if __name__ == '__main__':
     v = Videos()
-    # v.create_img(100, 200, text='这是测试')
-    # files = v.gen_file('./')
     files = v.walk_dir("./", [], [])
+
     for file in files:
         video_info = v.get_video_info(file)
-        if video_info != None and video_info != []:
-            print(file, video_info)
 
-            # # fps, width, height, file_name, fourcc
-            v.create_img(video_info[1], video_info[2], video_info[3], "数字电子技术", video_info[6])
+        if video_info != None and video_info != []:
+            # print(file, video_info)
+            logo_name = video_info[6].split('/')[-1]
+            print(logo_name)
+
+            # fps, width, height, file_name, fourcc
+            v.create_img(video_info[1], video_info[2], video_info[3], f'{logo_name}', video_info[6])
+
             create_file, videos_name, videos_type = v.create_video(videos_name=video_info[3], fourcc=video_info[4],
                                                                    fps=video_info[0],
                                                                    resolution=(video_info[1], video_info[2]),
